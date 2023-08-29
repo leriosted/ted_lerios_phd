@@ -1,0 +1,182 @@
+close all; clear all; clc
+atWork = 1;
+print_on = 1;
+
+colorBlue = '#0000FF';
+colorRed = '#FF0000';
+colorBlack = '#000000';
+colorGreen = '#009A17';
+colorOrange = '#FF6600';
+pt = 1.0;
+FS = 14;
+
+%% Plot Setup:
+if atWork == 1
+    figPos1 = [-1900, 100, 500, 400]; % Work
+    figPos2 = [-1250, 400, 600, 600];
+    figPos3 = [-600, 400, 600, 600];
+    figPos4 = [-1900, 100, 600, 600];
+    figPos5 = [-1250, 100, 600, 600];
+    figPos6 = [-600, 100, 600, 300];
+else
+    figPos1 = [-1900, 150, 500, 400]; % Home
+    figPos2 = [-1250, 500, 600, 600];
+    figPos3 = [-600, 500, 600, 600];
+    figPos4 = [-1900, 150, 600, 600];
+    figPos5 = [-1250, 150, 600, 600];
+    figPos6 = [-600, 150, 600, 300];
+end
+
+%%
+load young_results.mat
+load old_results.mat
+load FL_results.mat
+load NFL_results.mat
+
+
+%%
+figure('Position',figPos1)
+% young
+% subplot(2,1,1)
+% [h1.young,stats.young] = cdfplot(young.int_Q_dR_Array); hold on
+% [h1.old,stats.old] = cdfplot(old.int_Q_dR_Array); hold on
+[h1.NFL,stats.NFL] = cdfplot(NFL.meanR2Phi); hold on
+[h1.FL,stats.FL] = cdfplot(FL.meanR2Phi); hold on
+
+% set(h1.young, 'LineStyle', '-', 'Color', colorBlue,'LineWidth',pt);
+% set(h1.old, 'LineStyle', '-', 'Color', colorGreen,'LineWidth',pt);
+set(h1.NFL, 'LineStyle', '--', 'Color', colorBlue,'LineWidth',pt);
+set(h1.FL, 'LineStyle', '-', 'Color', colorRed,'LineWidth',pt);
+
+xlabel('mean $R_{2}\Phi$','Interpreter','latex')
+ylabel('Proportion')
+xlim([0 35])
+title('')
+legend('NFL','FL','Location','southeast','Fontsize',FS)
+grid on
+set(gca,'FontSize',FS);
+
+if print_on ==1
+    print('-r400','-dpng','CDF_mean_R2Phi.png');
+else 
+end
+
+figure('Position',figPos1)
+% subplot(2,1,2)
+AA = annotation('textbox', [0.44, 0.8, 0.1, 0.1], 'String', "A");
+AA.EdgeColor = 'none';
+AA.BackgroundColor = 'none';
+AA.FontSize = 12;
+BB = annotation('textbox', [0.53, 0.5, 0.1, 0.1], 'String', "B");
+BB.EdgeColor = 'none';
+BB.BackgroundColor = 'none';
+BB.FontSize = 12;
+CC = annotation('textbox', [0.34, 0.27, 0.2, 0.1], 'String', "C");
+CC.EdgeColor = 'none';
+CC.BackgroundColor = 'none';
+CC.FontSize = 12;
+DD = annotation('textbox', [0.14, 0.185, 0.1, 0.1], 'String', "D");
+DD.EdgeColor = 'none';
+DD.BackgroundColor = 'none';
+DD.FontSize = 12;
+
+sz = 40;
+% scatter(young.R1insp,young.int_Q_dR_Array,sz,...
+%                 'MarkerEdgeColor',colorBlue,...
+%                 'MarkerFaceColor',colorBlue,...
+%                 'LineWidth',1.5); hold on
+% scatter(old.R1insp,old.int_Q_dR_Array,sz,...
+%                 'MarkerEdgeColor',colorGreen,...
+%                 'MarkerFaceColor',colorGreen,...
+%                 'LineWidth',1.5); hold on
+scatter(NFL.R1insp,NFL.meanR2Phi,sz,'filled','^',...
+                'MarkerEdgeColor',colorBlue,...
+                'MarkerFaceColor',colorBlue,...
+                'LineWidth',1.5); hold on
+
+degree = 1;
+p = polyfit(NFL.R1insp,NFL.meanR2Phi,degree);
+f = polyval(p,NFL.R1insp);
+Rsquared = my_Rsquared_coeff(NFL.meanR2Phi,f)
+h1 = lsline();
+h1.Color = 'k';
+h1.LineWidth = 1.5;
+scatter(FL.R1insp,FL.meanR2Phi,sz,...
+                'MarkerEdgeColor',colorRed,...
+                'MarkerFaceColor',colorRed,...
+                'LineWidth',1.5); hold on
+xlabel('R_{1,insp}')
+ylabel('mean $R_2\Phi$','Interpreter','latex')
+legend('NFL','','FL','Location','northwest')
+anno = annotation('textbox', [0.65, 0.8, 0.1, 0.1], 'String', "R^2 = " + round(Rsquared,2));
+anno.EdgeColor = 'w';
+anno.BackgroundColor = 'w';
+anno.FontSize = 12;
+
+xlim([0 20])
+ylim([0 35])
+grid on
+set(gca,'FontSize',14);
+
+       
+if print_on ==1
+    print('-r400','-dpng','R1_insp_mean_R2Phi.png');
+else 
+end
+FS = 12;
+figure('Position',figPos1)
+subplot(2,2,1)
+plot(FL.flow(8,:),FL.resistance(8,:),'Color',colorBlack,'Linewidth',pt,'Linestyle','-'); hold on
+xlabel('Q (L/s)')
+ylabel('R (cmH_2O/L/s)')
+xlim([-1 0])
+ylim([0 65])
+grid on
+set(gca,'FontSize',FS);
+subplot(2,2,2)
+plot(FL.flow(27,:),FL.resistance(27,:),'Color',colorBlack,'Linewidth',pt,'Linestyle','-'); hold on
+xlabel('Q (L/s)')
+ylabel('R (cmH_2O/L/s)')
+xlim([-1 0])
+ylim([0 65])
+grid on
+set(gca,'FontSize',FS);
+subplot(2,2,3)
+plot(NFL.flow(16,:),NFL.resistance(16,:),'Color',colorBlack,'Linewidth',pt,'Linestyle','-'); hold on
+xlabel('Q (L/s)')
+ylabel('R (cmH_2O/L/s)')
+xlim([-1 0])
+ylim([0 65])
+grid on
+set(gca,'FontSize',FS);
+subplot(2,2,4)
+plot(NFL.flow(25,:),NFL.resistance(25,:),'Color',colorBlack,'Linewidth',pt,'Linestyle','-'); hold on
+xlabel('Q (L/s)')
+ylabel('R (cmH_2O/L/s)')
+xlim([-1 0])
+ylim([0 65])
+grid on
+set(gca,'FontSize',FS);
+
+AA = annotation('textbox', [0.17, 0.82, 0.1, 0.1], 'String', "A");
+AA.EdgeColor = 'w';
+AA.BackgroundColor = 'w';
+AA.FontSize = 14;
+BB = annotation('textbox', [0.61, 0.82, 0.1, 0.1], 'String', "B");
+BB.EdgeColor = 'w';
+BB.BackgroundColor = 'w';
+BB.FontSize = 14;
+CC = annotation('textbox', [0.17, 0.34, 0.2, 0.1], 'String', "C");
+CC.EdgeColor = 'w';
+CC.BackgroundColor = 'w';
+CC.FontSize = 14;
+DD = annotation('textbox', [0.61, 0.34, 0.1, 0.1], 'String', "D");
+DD.EdgeColor = 'w';
+DD.BackgroundColor = 'w';
+DD.FontSize = 14;
+
+if print_on ==1
+    print('-r400','-dpng','A-D_R-Q.png');
+else 
+end
+       
